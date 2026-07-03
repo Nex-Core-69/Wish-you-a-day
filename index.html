@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>piu · 18th birthday</title>
+    <!-- robotic / mathematical fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Major+Mono+Display&family=Audiowide&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0718;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', 'Major Mono Display', monospace;
+            color: #f1e5ff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* GLITTER (smooth) */
+        .glitter-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 2s ease;
+            overflow: hidden;
+        }
+        .glitter-overlay.active {
+            opacity: 0.9;
+        }
+        .glitter-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 245, 0.95);
+            border-radius: 50%;
+            box-shadow: 0 0 20px 6px #ffffff, 0 0 40px #ffdfb5;
+            animation: glitterMove 7s linear infinite;
+        }
+        @keyframes glitterMove {
+            0% { transform: translateY(-10%) translateX(0) scale(0.8); opacity: 0.2; }
+            10% { opacity: 1; }
+            80% { opacity: 0.8; }
+            100% { transform: translateY(120vh) translateX(60px) scale(0.3); opacity: 0; }
+        }
+
+        .stage {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            padding: 1.2rem;
+            position: relative;
+        }
+
+        /* glass page - NO ZOOM, fixed scale */
+        .page {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(12, 8, 26, 0.65);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1.5px solid rgba(255, 180, 210, 0.3);
+            border-radius: 70px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 30px 60px -20px #000, 0 0 0 2px #ffc1d9 inset;
+            transition: opacity 0.9s ease;
+            transform: scale(1); /* fixed scale - no zoom */
+        }
+
+        .hidden-page {
+            display: none;
+        }
+
+        /* circular images - consistent size, no zoom */
+        .pfp-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #ffcbe4;
+            box-shadow: 0 0 40px #ffb0ca, 0 15px 25px #00000090;
+            transition: none; /* no hover zoom */
+            pointer-events: none; /* images don't interfere with clicks */
+        }
+
+        /* option card images need pointer-events auto for click */
+        .option-card .pfp-circle {
+            pointer-events: auto;
+        }
+
+        .ichigo-fade {
+            animation: softFade 2.4s ease-out forwards;
+        }
+        @keyframes softFade {
+            0% { opacity: 0; transform: scale(0.95); filter: blur(8px); }
+            100% { opacity: 1; transform: scale(1); filter: blur(0); }
+        }
+
+        .get-ready {
+            font-size: 2.2rem;
+            font-family: 'Audiowide', cursive;
+            letter-spacing: 2px;
+            background: linear-gradient(145deg, #ffcfd5, #ffb8d2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+
+        .continue-btn {
+            background: #1c142780;
+            border: 2px solid #ffc3dc;
+            color: #ffe4f0;
+            font-size: 2rem;
+            font-family: 'Major Mono Display', monospace;
+            padding: 0.8rem 3.2rem;
+            border-radius: 80px;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.5s ease;
+            box-shadow: 0 10px 30px -10px #ffacc7;
+            margin-top: 2.5rem;
+        }
+        .continue-btn:hover {
+            background: #fffaef30;
+            border-color: #ffadca;
+            box-shadow: 0 0 40px #ffb0cf;
+        }
+
+        /* option cards - no zoom on click, just transform */
+        .option-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 3.5rem;
+            margin: 3rem 0 1rem;
+        }
+        .option-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.3rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .option-card:hover {
+            transform: translateY(-5px); /* minimal movement, no zoom */
+        }
+
+        .dim-pfp {
+            filter: brightness(0.3) drop-shadow(0 0 12px #ffa8c5);
+            transition: filter 1.5s ease;
+        }
+        .click-me-text {
+            font-size: 1.2rem;
+            font-family: 'Major Mono Display', monospace;
+            letter-spacing: 2px;
+            background: #ffc3d420;
+            padding: 0.3rem 1.8rem;
+            border-radius: 60px;
+            color: #ffd9e2;
+            border: 1.2px dashed #ffb2cc;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.6s ease, transform 0.5s ease;
+            pointer-events: none;
+        }
+        .option-card .pfp-circle.dim-pfp + .click-me-text {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .pop-smooth {
+            animation: smoothPop 0.7s cubic-bezier(0.2, 0.8, 0.3, 1.2) forwards;
+            opacity: 0;
+        }
+        @keyframes smoothPop {
+            0% { opacity: 0; transform: scale(0.9) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* typed area */
+        .typed-area {
+            font-size: 1.3rem;
+            line-height: 1.7;
+            min-height: 12em;
+            background: #0e0b1a;
+            padding: 2rem 2.2rem;
+            border-radius: 50px;
+            border: 1px solid #ffc0d0;
+            box-shadow: inset 0 0 30px #241e32;
+            color: #ffdbeb;
+            font-family: 'Space Mono', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+            width: 100%;
+        }
+
+        .cursor-blink {
+            display: inline-block;
+            width: 4px;
+            height: 1.7rem;
+            background: #ffb7d0;
+            vertical-align: middle;
+            margin-left: 5px;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+        /* back button */
+        .back-button {
+            background: #ffffff08;
+            border: 1.5px solid #ffb7ce;
+            color: #ffd2e2;
+            font-size: 1.2rem;
+            font-family: 'Major Mono Display', monospace;
+            padding: 0.5rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+            backdrop-filter: blur(10px);
+            display: inline-block;
+        }
+        .back-button:hover {
+            background: #fffaef20;
+            border-color: #ff9fbf;
+        }
+
+        /* final button */
+        .mubin-click-btn {
+            background: #cba6f030;
+            border: 2.5px solid #ffbad2;
+            font-size: 2.2rem;
+            font-family: 'Audiowide', cursive;
+            padding: 1rem 2.5rem;
+            border-radius: 100px;
+            margin: 2rem auto 1rem;
+            color: #fff1e5;
+            cursor: pointer;
+            transition: 0.3s ease;
+            box-shadow: 0 0 30px #ff9cb6;
+            letter-spacing: 2px;
+        }
+        .mubin-click-btn:hover {
+            background: #ffffff30;
+            box-shadow: 0 0 60px #ffb0c8;
+        }
+
+        /* final black page with scroll */
+        .final-black-page {
+            background: #07040e;
+            border: 2px solid #ffbed6;
+        }
+        .scroll-up-container {
+            height: 420px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem 0;
+        }
+        .scroll-up-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            animation: scrollVerySlow 20s linear infinite;
+            font-size: 2rem;   
+            font-family: 'Space Mono', 'Major Mono Display', monospace;
+            color: #ffddee;
+            text-shadow: 0 0 10px #ffb7d0;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+        @keyframes scrollVerySlow {
+            0% { transform: translateY(30%); }
+            100% { transform: translateY(-150%); }
+        }
+
+        /* credit line styling - typing animation then fade out */
+        .credit-line {
+            font-size: 1.1rem;
+            color: #ffc3d0;
+            font-family: 'Major Mono Display', monospace;
+            letter-spacing: 1px;
+            margin-top: 1rem;
+            min-height: 2.5rem;
+            opacity: 1;
+            transition: opacity 2s ease;
+        }
+        .credit-line.fade-out {
+            opacity: 0;
+        }
+
+        /* muzan page specific - no zoom, same as orhime */
+        .muzan-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        /* audio button - small, cute */
+        .audio-control {
+            margin-top: 1rem;
+        }
+        .audio-btn {
+            background: #1a1128;
+            border: 1px solid #ffb0c8;
+            color: #ffd2e6;
+            font-size: 0.9rem;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-family: 'Space Mono', monospace;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .audio-btn:hover {
+            background: #ffc3d430;
+        }
+    </style>
+</head>
+<body>
+    <!-- glitter layer -->
+    <div class="glitter-overlay" id="glitterOverlay"></div>
+
+    <div class="stage" id="appStage">
+        <!-- LANDING (ichigo) -->
+        <div id="landingPage" class="page">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <img src="https://i.postimg.cc/hvTJJMR3/34c48dcd8c58852c063c8345fd1a4e4c.jpg" alt="ichigo" class="pfp-circle ichigo-fade" style="width:200px; height:200px; margin-bottom:2rem;">
+                <div class="get-ready pop-smooth" style="animation-delay:0.3s">⋆˚✧ get ready, Madam? ✧˚⋆</div>
+                <button class="continue-btn pop-smooth" id="continueBtn" style="animation-delay:0.7s">⸻ continue ⸻</button>
+            </div>
+        </div>
+
+        <!-- MAIN page (orhime + muzan) -->
+        <div id="mainPage" class="page hidden-page">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem; opacity:0.8;">✧ ˚ ☾</div>
+                <div class="option-row">
+                    <!-- orhime card -->
+                    <div class="option-card" id="orhimeCard">
+                        <img src="https://i.postimg.cc/sgR9X1qw/a4dd94b6e53e5fb46537ffdb3e3a139a.jpg" alt="orhime" class="pfp-circle" id="orhimePfp">
+                        <span class="click-me-text" id="orhimeClickText">click me</span>
+                    </div>
+                    <!-- muzan card -->
+                    <div class="option-card" id="muzanCard">
+                        <img src="https://i.postimg.cc/CKcxdXBF/f97db0a8a0f2198012a761b6f9cd45dd.jpg" alt="muzan" class="pfp-circle" id="muzanPfp">
+                        <span class="click-me-text" id="muzanClickText">click me</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; font-size:0.9rem; opacity:0.5;">☾ ⋆⁺₊ both sides await ☽</div>
+                
+                <!-- manual audio button (fallback) -->
+                <div class="audio-control">
+                    <button id="playAudioBtn" class="audio-btn">🔊 play music</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORHIME page -->
+        <div id="orhimePage" class="page hidden-page">
+            <div style="display:flex; flex-direction: column; align-items: center; gap:2rem;">
+                <img src="https://i.postimg.cc/sgR9X1qw/a4dd94b6e53e5fb46537ffdb3e3a139a.jpg" style="width:140px;">
+                <div class="typed-area" id="orhimeTypedArea"></div>
+                <button class="back-button" onclick="goBackFromChar()">✧ back ✧</button>
+            </div>
+        </div>
+
+        <!-- MUZAN page - SAME as orhime, NO ZOOM, with credit line typing then fade -->
+        <div id="muzanPage" class="page hidden-page">
+            <div style="display:flex; flex-direction: column; align-items: center; gap:2rem;">
+                <img src="https://i.postimg.cc/CKcxdXBF/f97db0a8a0f2198012a761b6f9cd45dd.jpg" style="width:140px;">
+                <div class="typed-area" id="muzanTypedArea"></div>
+                <!-- credit line with typing animation then fade after 10s -->
+                <div id="creditLine" class="credit-line"></div>
+                <button class="back-button" onclick="goBackFromChar()">✧ back ✧</button>
+            </div>
+        </div>
+
+        <!-- FINAL black page -->
+        <div id="finalBlackPage" class="page final-black-page hidden-page">
+            <div class="scroll-up-container">
+                <div class="scroll-up-text" id="scrollWish">
+                    <div>Happy Birthday, Piu ❀</div>
+                    <div>Today marks a special milestone in your life.</div>
+                    <div>Turning 18 opens a new chapter filled with</div>
+                    <div>opportunities, responsibilities, and growth ✧</div>
+                    <div>May this year bring you success, wisdom,</div>
+                    <div>and many meaningful achievements ☾</div>
+                    <div>Continue working hard, believing in yourself,</div>
+                    <div>and moving forward with confidence ♡</div>
+                    <div>We wish you a wonderful birthday and</div>
+                    <div>a bright future ahead ✦</div>
+                    <div>Have a great celebration and enjoy your special day ❀</div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; margin-top: 2rem;">
+                <button class="back-button" onclick="goBackToMainFromFinal()">☾ main ☽</button>
+            </div>
+        </div>
+
+        <!-- final button container -->
+        <div id="finalButtonContainer" style="display: none; margin-top: 2.5rem; flex-direction: column; align-items: center;" class="pop-smooth">
+            <button class="mubin-click-btn" id="finalRevealBtn">⋆ Piu click fast ⋆</button>
+        </div>
+    </div>
+
+    <!-- AUDIO element - with NEW song (3oo904.mp3) -->
+    <audio id="bgMusic" loop preload="auto" style="display: none;">
+        <source src="https://files.catbox.moe/mjw1kk.mp3" type="audio/mpeg">
+        <source src="https://files.catbox.moe/mjw1kk.mp3" type="audio/mp3">
+    </audio>
+
+    <script>
+        (function() {
+            // ---------- STATE ----------
+            let musicStarted = false;
+            let orhimeVisited = false;
+            let muzanVisited = false;
+
+            // DOM elements
+            const landing = document.getElementById('landingPage');
+            const mainPage = document.getElementById('mainPage');
+            const orhimePage = document.getElementById('orhimePage');
+            const muzanPage = document.getElementById('muzanPage');
+            const finalBlackPage = document.getElementById('finalBlackPage');
+            const finalBtnContainer = document.getElementById('finalButtonContainer');
+            const continueBtn = document.getElementById('continueBtn');
+            const playAudioBtn = document.getElementById('playAudioBtn');
+            const glitter = document.getElementById('glitterOverlay');
+            const audio = document.getElementById('bgMusic');
+
+            const orhimePfp = document.getElementById('orhimePfp');
+            const muzanPfp = document.getElementById('muzanPfp');
+            const orhimeTyped = document.getElementById('orhimeTypedArea');
+            const muzanTyped = document.getElementById('muzanTypedArea');
+            const finalBtn = document.getElementById('finalRevealBtn');
+            const creditLine = document.getElementById('creditLine');
+
+            // ---------- GLITTER init ----------
+            function initGlitter() {
+                for (let i = 0; i < 40; i++) {
+                    const span = document.createElement('span');
+                    span.className = 'glitter-particle';
+                    const size = Math.random() * 10 + 4;
+                    span.style.width = size + 'px';
+                    span.style.height = size + 'px';
+                    span.style.left = Math.random() * 100 + '%';
+                    span.style.top = Math.random() * 100 + '%';
+                    span.style.animationDuration = (Math.random() * 8 + 5) + 's';
+                    span.style.animationDelay = (Math.random() * 6) + 's';
+                    glitter.appendChild(span);
+                }
+            }
+            initGlitter();
+
+            function enableGlitter(active) {
+                if (active) glitter.classList.add('active');
+                else glitter.classList.remove('active');
+            }
+
+            // ---------- AUDIO PLAY FUNCTION (reliable) ----------
+            function playMusic() {
+                audio.volume = 0.4;
+                audio.play()
+                    .then(() => {
+                        musicStarted = true;
+                        console.log('audio playing');
+                        enableGlitter(true);
+                    })
+                    .catch(err => {
+                        console.warn('audio play failed:', err);
+                        // Show manual button if autoplay fails
+                        if (playAudioBtn) playAudioBtn.style.display = 'inline-block';
+                    });
+            }
+
+            // Manual play button
+            if (playAudioBtn) {
+                playAudioBtn.addEventListener('click', function() {
+                    playMusic();
+                    playAudioBtn.style.display = 'none'; // hide after success
+                });
+            }
+
+            // ---------- PAGE CONTROL ----------
+            function hideAllPages() {
+                landing.classList.add('hidden-page');
+                mainPage.classList.add('hidden-page');
+                orhimePage.classList.add('hidden-page');
+                muzanPage.classList.add('hidden-page');
+                finalBlackPage.classList.add('hidden-page');
+            }
+
+            function showPage(page) {
+                hideAllPages();
+                page.classList.remove('hidden-page');
+            }
+
+            // ---------- TYPING MACHINE ----------
+            function typeWriter(element, fullText, speed, callback) {
+                element.innerHTML = '';
+                let i = 0;
+                function addChar() {
+                    if (i < fullText.length) {
+                        element.innerHTML += fullText.charAt(i);
+                        i++;
+                        setTimeout(addChar, speed);
+                    } else {
+                        element.innerHTML += '<span class="cursor-blink"></span>';
+                        if (callback) callback();
+                    }
+                }
+                addChar();
+            }
+
+            // MESSAGES (updated for Piu)
+            const orhimeMessage = `Hello Piu ☾
+Baby, happy birthbbz , I'm your jungkook ✦
+I know I'm a little late… my bbz ♡ but that doesn't change how special you are to me. You are one of the most precious people in my life, and I'm really grateful to have you ✧
+I hope your day is filled with smiles, warm moments, and everything that makes your heart happy ❀ May this new year of your life bring you love, success, and beautiful memories ✦
+Always remember — you are important, you are loved, and you mean a lot to me ♡
+Happy birthday once again, baby ✧
+I hope your 18th year becomes one of the most amazing chapters of your life ☾`;
+
+            const muzanMessage = `Happy birthday Piu  ✦
+I know this wish might be simple for someone like you, and maybe it's not enough. But still, I made it with effort, respect, and good intentions ♡
+Life is a long journey, and today you just unlocked another level ✧ I hope this year brings you success, fun memories, and lots of great moments with your friends ☾
+Keep growing, keep winning, and keep being the awesome person you are ❀
+Enjoy your 18. madam ✦`;
+
+            // Credit line to type slowly then fade
+            const creditText = "Wished by whu";
+
+            function typeCreditLine() {
+                creditLine.innerHTML = '';
+                creditLine.classList.remove('fade-out');
+                let i = 0;
+                function addChar() {
+                    if (i < creditText.length) {
+                        creditLine.innerHTML += creditText.charAt(i);
+                        i++;
+                        setTimeout(addChar, 150); // slower typing
+                    } else {
+                        // After typing complete, wait 10 seconds then fade out
+                        setTimeout(() => {
+                            creditLine.classList.add('fade-out');
+                        }, 10000); // 10 seconds
+                    }
+                }
+                addChar();
+            }
+
+            // ---------- CONTINUE BUTTON ----------
+            continueBtn.addEventListener('click', () => {
+                // Try to play music
+                playMusic();
+                
+                landing.style.opacity = '0';
+                setTimeout(() => {
+                    showPage(mainPage);
+                    landing.style.opacity = '1';
+                    document.querySelectorAll('.option-card').forEach((el, i) => {
+                        el.classList.add('pop-smooth');
+                        el.style.animationDelay = (i * 0.25) + 's';
+                    });
+                    startDimCycle();
+                }, 500);
+            });
+
+            // ---------- DIM CYCLE ----------
+            let dimInterval;
+            function startDimCycle() {
+                if (dimInterval) clearInterval(dimInterval);
+                dimInterval = setInterval(() => {
+                    if (!mainPage.classList.contains('hidden-page')) {
+                        orhimePfp.classList.add('dim-pfp');
+                        muzanPfp.classList.add('dim-pfp');
+                    }
+                }, 2000);
+                setTimeout(() => {
+                    if (!mainPage.classList.contains('hidden-page')) {
+                        orhimePfp.classList.add('dim-pfp');
+                        muzanPfp.classList.add('dim-pfp');
+                    }
+                }, 2000);
+            }
+
+            // ---------- ORHIME CLICK ----------
+            document.getElementById('orhimeCard').addEventListener('click', () => {
+                if (!mainPage.classList.contains('hidden-page')) {
+                    showPage(orhimePage);
+                    orhimeVisited = true;
+                    typeWriter(orhimeTyped, orhimeMessage, 40, () => {});
+                    checkBoth();
+                }
+            });
+
+            // ---------- MUZAN CLICK (no zoom, with credit line) ----------
+            document.getElementById('muzanCard').addEventListener('click', () => {
+                if (!mainPage.classList.contains('hidden-page')) {
+                    showPage(muzanPage);
+                    muzanVisited = true;
+                    typeWriter(muzanTyped, muzanMessage, 40, () => {});
+                    // Start credit line typing
+                    setTimeout(() => {
+                        typeCreditLine();
+                    }, 500); // slight delay after message starts
+                    checkBoth();
+                }
+            });
+
+            function checkBoth() {
+                if (orhimeVisited && muzanVisited) {
+                    finalBtnContainer.style.display = 'flex';
+                }
+            }
+
+            // BACK FUNCTION
+            window.goBackFromChar = function() {
+                showPage(mainPage);
+                if (orhimeVisited) orhimePfp.classList.add('dim-pfp');
+                if (muzanVisited) muzanPfp.classList.add('dim-pfp');
+                // reset credit line
+                if (creditLine) {
+                    creditLine.innerHTML = '';
+                    creditLine.classList.remove('fade-out');
+                }
+                startDimCycle();
+            };
+
+            // FINAL BUTTON
+            finalBtn.addEventListener('click', () => {
+                showPage(finalBlackPage);
+                // ensure music plays
+                if (!musicStarted) playMusic();
+            });
+
+            window.goBackToMainFromFinal = function() {
+                showPage(mainPage);
+                if (orhimeVisited) orhimePfp.classList.add('dim-pfp');
+                if (muzanVisited) muzanPfp.classList.add('dim-pfp');
+                startDimCycle();
+            };
+
+            // Make sure audio plays on any user interaction after page load
+            document.addEventListener('click', function once() {
+                if (!musicStarted) {
+                    // try to play - but only once per session
+                    audio.play().catch(() => {});
+                }
+                document.removeEventListener('click', once);
+            }, { once: true });
+
+            // Show play button if needed
+            setTimeout(() => {
+                if (!musicStarted && playAudioBtn) {
+                    playAudioBtn.style.display = 'inline-block';
+                }
+            }, 1000);
+        })();
+    </script>
+
+    <!-- ensure back functions are global -->
+    <script>
+        window.goBackFromChar = function() {
+            document.getElementById('mainPage').classList.remove('hidden-page');
+            document.getElementById('orhimePage').classList.add('hidden-page');
+            document.getElementById('muzanPage').classList.add('hidden-page');
+            document.getElementById('finalBlackPage').classList.add('hidden-page');
+            if (typeof orhimeVisited !== 'undefined' && orhimeVisited) 
+                document.getElementById('orhimePfp').classList.add('dim-pfp');
+            if (typeof muzanVisited !== 'undefined' && muzanVisited) 
+                document.getElementById('muzanPfp').classList.add('dim-pfp');
+            // reset credit line
+            const credit = document.getElementById('creditLine');
+            if (credit) {
+                credit.innerHTML = '';
+                credit.classList.remove('fade-out');
+            }
+        };
+        
+        window.goBackToMainFromFinal = function() {
+            document.getElementById('mainPage').classList.remove('hidden-page');
+            document.getElementById('finalBlackPage').classList.add('hidden-page');
+            document.getElementById('orhimePage').classList.add('hidden-page');
+            document.getElementById('muzanPage').classList.add('hidden-page');
+        };
+
+        // Final button global trigger
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'finalRevealBtn') {
+                document.getElementById('finalBlackPage').classList.remove('hidden-page');
+                document.getElementById('mainPage').classList.add('hidden-page');
+                document.getElementById('orhimePage').classList.add('hidden-page');
+                document.getElementById('muzanPage').classList.add('hidden-page');
+                document.getElementById('landingPage').classList.add('hidden-page');
+                document.getElementById('glitterOverlay').classList.add('active');
+                // try audio
+                const aud = document.getElementById('bgMusic');
+                aud.play().catch(() => {});
+            }
+        });
+    </script>
+</body>
+</html>
